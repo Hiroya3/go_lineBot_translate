@@ -1,0 +1,2 @@
+# go_lineBot_translate
+日本語を英語に翻訳するLINE_Bot
