@@ -66,6 +66,10 @@ func translating(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	
+	if strings.Contains(resp[0].Text, "&#39;") {
+		resp[0].Text = strings.Replace(resp[0].Text, "&#39;", "'", -1)
+	}
 
 	return resp[0].Text, nil
 }
