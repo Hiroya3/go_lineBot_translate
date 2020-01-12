@@ -98,7 +98,7 @@ func translating(targetLanguage, text string) (string, error) {
 		resp[0].Text = strings.Replace(resp[0].Text, convertStr[5], " ", -1)
 	}
 	
-		if strings.Contains(resp[0].Text, "』") {
+	if strings.Contains(resp[0].Text, "』") {
 		resp[0].Text = strings.Replace(resp[0].Text, "』", "\"", -1)
 	}
 
