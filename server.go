@@ -50,8 +50,13 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func translating(text string) (string, error) {
+func translating(targetLanguage, text string) (string, error) {
 	ctx := context.Background()
+
+	lang, err := language.Parse(targetLanguage)
+	if err != nil {
+		return "", err
+	}
 
 	//環境変数に設定したAPIキーを取得
 	apiKey := os.Getenv("APIKEY")
@@ -62,13 +67,35 @@ func translating(text string) (string, error) {
 
 	defer client.Close()
 
-	resp, err := client.Translate(ctx, []string{text}, language.English, nil)
+	resp, err := client.Translate(ctx, []string{text}, lang, nil)
 	if err != nil {
 		return "", err
 	}
-	
-	if strings.Contains(resp[0].Text, "&#39;") {
-		resp[0].Text = strings.Replace(resp[0].Text, "&#39;", "'", -1)
+
+	//convertStrが複数種類入っている可能性があるので
+	//if文を使用
+	if strings.Contains(resp[0].Text, convertStr[0]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[0], "<", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[1]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[1], ">", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[2]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[2], "&", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[3]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[3], "\"", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[4]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[4], "'", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[5]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[5], " ", -1)
 	}
 
 	return resp[0].Text, nil
