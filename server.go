@@ -34,7 +34,10 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, event := range events {
+		//The LINE Messaging API defines 7 types of event
+		//EventTypeMessage, EventTypeFollow, EventTypeUnfollow, EventTypeJoin, EventTypeLeave, EventTypePostback, EventTypeBeacon
 		if event.Type == linebot.EventTypeMessage {
+			//参考：https://developers.line.biz/ja/reference/messaging-api/#message-event
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
 				response, err := translating(message.Text)
