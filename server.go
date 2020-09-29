@@ -53,6 +53,8 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+var ConvertStr [] string = []string{"&lt;","&gt;","&amp;","&#039;","&quot;"}
+
 func translating(text string) (string, error) {
 	ctx := context.Background()
 
@@ -87,19 +89,11 @@ func translating(text string) (string, error) {
 	}
 
 	if strings.Contains(resp[0].Text, convertStr[3]) {
-		resp[0].Text = strings.Replace(resp[0].Text, convertStr[3], "\"", -1)
-	}
-
-	if strings.Contains(resp[0].Text, convertStr[4]) {
-		resp[0].Text = strings.Replace(resp[0].Text, convertStr[4], "'", -1)
-	}
-
-	if strings.Contains(resp[0].Text, convertStr[5]) {
-		resp[0].Text = strings.Replace(resp[0].Text, convertStr[5], " ", -1)
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[3], "'", -1)
 	}
 	
-	if strings.Contains(resp[0].Text, "』") {
-		resp[0].Text = strings.Replace(resp[0].Text, "』", "\"", -1)
+	if strings.Contains(resp[0].Text, convertStr[4]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[4], """, -1)
 	}
 
 	return resp[0].Text, nil
