@@ -53,13 +53,8 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func translating(targetLanguage, text string) (string, error) {
+func translating(text string) (string, error) {
 	ctx := context.Background()
-
-	lang, err := language.Parse(targetLanguage)
-	if err != nil {
-		return "", err
-	}
 
 	//環境変数に設定したAPIキーを取得
 	apiKey := os.Getenv("APIKEY")
@@ -70,7 +65,9 @@ func translating(targetLanguage, text string) (string, error) {
 
 	defer client.Close()
 
-	resp, err := client.Translate(ctx, []string{text}, lang, nil)
+	//respの内容は[]Translation{Text string,Source language.Tag,Model string}
+	//https://godoc.org/cloud.google.com/go/translate#Translation
+	resp, err := client.Translate(ctx, []string{text}, language.English, nil)
 	if err != nil {
 		return "", err
 	}
