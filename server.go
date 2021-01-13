@@ -5,12 +5,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/translate"
 	"github.com/line/line-bot-sdk-go/linebot"
 	"golang.org/x/text/language"
 	"google.golang.org/api/option"
 )
+
+var convertStr = []string{"&lt;", "&gt;", "&amp;", "&quot;", "&#39;", "&nbsp;"}
 
 func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	bot, err := linebot.New(
@@ -34,16 +37,14 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, event := range events {
-		//The LINE Messaging API defines 7 types of event
-		//EventTypeMessage, EventTypeFollow, EventTypeUnfollow, EventTypeJoin, EventTypeLeave, EventTypePostback, EventTypeBeacon
 		if event.Type == linebot.EventTypeMessage {
-			//参考：https://developers.line.biz/ja/reference/messaging-api/#message-event
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				response, err := translating(message.Text)
+				response, err := translating("en", message.Text)
 				if err != nil {
 					log.Fatal(err)
 				}
+
 				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(response)).Do(); err != nil {
 					log.Print(err)
 				}
@@ -53,10 +54,13 @@ func ReplayEnglish(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-var ConvertStr [] string = []string{"&lt;","&gt;","&amp;","&#039;","&quot;"}
-
-func translating(text string) (string, error) {
+func translating(targetLanguage, text string) (string, error) {
 	ctx := context.Background()
+
+	lang, err := language.Parse(targetLanguage)
+	if err != nil {
+		return "", err
+	}
 
 	//環境変数に設定したAPIキーを取得
 	apiKey := os.Getenv("APIKEY")
@@ -67,9 +71,7 @@ func translating(text string) (string, error) {
 
 	defer client.Close()
 
-	//respの内容は[]Translation{Text string,Source language.Tag,Model string}
-	//https://godoc.org/cloud.google.com/go/translate#Translation
-	resp, err := client.Translate(ctx, []string{text}, language.English, nil)
+	resp, err := client.Translate(ctx, []string{text}, lang, nil)
 	if err != nil {
 		return "", err
 	}
@@ -89,11 +91,19 @@ func translating(text string) (string, error) {
 	}
 
 	if strings.Contains(resp[0].Text, convertStr[3]) {
-		resp[0].Text = strings.Replace(resp[0].Text, convertStr[3], "'", -1)
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[3], "\"", -1)
 	}
-	
+
 	if strings.Contains(resp[0].Text, convertStr[4]) {
-		resp[0].Text = strings.Replace(resp[0].Text, convertStr[4], """, -1)
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[4], "'", -1)
+	}
+
+	if strings.Contains(resp[0].Text, convertStr[5]) {
+		resp[0].Text = strings.Replace(resp[0].Text, convertStr[5], " ", -1)
+	}
+
+	if strings.Contains(resp[0].Text, "』") {
+		resp[0].Text = strings.Replace(resp[0].Text, "』", "\"", -1)
 	}
 
 	return resp[0].Text, nil
